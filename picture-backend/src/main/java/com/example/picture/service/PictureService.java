@@ -1,10 +1,14 @@
 package com.example.picture.service;
 
+import com.example.picture.entity.Album;
 import com.example.picture.entity.Picture;
+import com.example.picture.repository.AlbumPictureRepository;
+import com.example.picture.repository.AlbumRepository;
 import com.example.picture.repository.PictureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -21,6 +25,12 @@ public class PictureService {
 
     @Autowired
     private PictureRepository pictureRepository;
+
+    @Autowired
+    private AlbumPictureRepository albumPictureRepository;
+
+    @Autowired
+    private AlbumRepository albumRepository;
 
     @Value("${upload.path:/app/images/}")
     private String uploadPath;
@@ -58,6 +68,7 @@ public class PictureService {
         return pictureRepository.findAll();
     }
 
+    @Transactional
     public void delete(Long id) {
         pictureRepository.findById(id).ifPresent(picture -> {
             String fileName = picture.getUrl().replace("/images/", "");
@@ -66,6 +77,15 @@ public class PictureService {
                 file.delete();
             }
             pictureRepository.delete(picture);
+            // 图库删除图片时，连带清理各相册中的成员关系与手动封面引用，
+            // 相册展示封面会自动回退到"最近加入的成员"
+            for (Album album : albumRepository.findAll()) {
+                if (id.equals(album.getCoverPictureId())) {
+                    album.setCoverPictureId(null);
+                    albumRepository.save(album);
+                }
+            }
+            albumPictureRepository.deleteByPictureId(id);
         });
     }
 }
