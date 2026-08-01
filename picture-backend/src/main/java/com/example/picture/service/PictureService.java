@@ -22,6 +22,9 @@ public class PictureService {
     @Autowired
     private PictureRepository pictureRepository;
 
+    @Autowired
+    private AlbumService albumService;
+
     @Value("${upload.path:/app/images/}")
     private String uploadPath;
 
@@ -60,6 +63,8 @@ public class PictureService {
 
     public void delete(Long id) {
         pictureRepository.findById(id).ifPresent(picture -> {
+            // 图库删除图片：先清理该图片在所有相册中的成员关系（封面随之自动回退），再物理删除文件与记录
+            albumService.onPictureDeleted(id);
             String fileName = picture.getUrl().replace("/images/", "");
             File file = new File(uploadPath + fileName);
             if (file.exists()) {

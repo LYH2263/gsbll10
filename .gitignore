@@ -1,2 +1,22 @@
+# 题目与对话
 对话/
 题目.md
+
+# Frontend
+picture-frontend/node_modules/
+picture-frontend/dist/
+*.local
+.DS_Store
+
+# Backend (Maven)
+picture-backend/target/
+*.class
+*.jar
+*.war
+*.log
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+Thumbs.db
