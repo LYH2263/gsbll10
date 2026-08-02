@@ -22,6 +22,9 @@ public class PictureService {
     @Autowired
     private PictureRepository pictureRepository;
 
+    @Autowired
+    private AlbumService albumService;
+
     @Value("${upload.path:/app/images/}")
     private String uploadPath;
 
@@ -65,6 +68,7 @@ public class PictureService {
             if (file.exists()) {
                 file.delete();
             }
+            albumService.onPictureDeleted(id);
             pictureRepository.delete(picture);
         });
     }
