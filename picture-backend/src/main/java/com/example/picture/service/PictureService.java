@@ -5,6 +5,7 @@ import com.example.picture.repository.PictureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -21,6 +22,9 @@ public class PictureService {
 
     @Autowired
     private PictureRepository pictureRepository;
+
+    @Autowired
+    private AlbumService albumService;
 
     @Value("${upload.path:/app/images/}")
     private String uploadPath;
@@ -58,6 +62,7 @@ public class PictureService {
         return pictureRepository.findAll();
     }
 
+    @Transactional
     public void delete(Long id) {
         pictureRepository.findById(id).ifPresent(picture -> {
             String fileName = picture.getUrl().replace("/images/", "");
@@ -66,6 +71,7 @@ public class PictureService {
                 file.delete();
             }
             pictureRepository.delete(picture);
+            albumService.onPictureDeletedFromLibrary(id);
         });
     }
 }
